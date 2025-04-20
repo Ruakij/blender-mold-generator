@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![Version](https://img.shields.io/badge/Version-0.1.0-green)
 
-A Blender add-on to generate mold shells from 3D models. This addon analyzes a mesh to find its thickest cross-section along the Z-axis, cuts it at that location, extrudes the profile to create a shell, and offers options for splitting the mold and working non-destructively.
+A Blender add-on to generate mold shells from 3D models. Analyzes a mesh to find its thickest cross-section along the Z-axis, cuts it, extrudes the profile to create a shell, and offers options for splitting the mold and working non-destructively.
 
 Particularly useful when used on objects that already represent a shell, such like using Blenders Solidify modifier or the [Blender Shell Generator](https://github.com/Ruakij/blender-shell-generator) addon from me.
 
