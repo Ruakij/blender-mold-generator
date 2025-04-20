@@ -1,5 +1,6 @@
 import bpy
-from .core import generate_mold, _find_best_slice
+from .core import generate_mold
+from .geometry import _find_best_slice
 from .utils import report_error
 
 

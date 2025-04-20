@@ -3,95 +3,9 @@ import bmesh
 import math
 from mathutils import Vector
 from . import utils
-
-
-def _find_best_slice(mesh, max_z, depth=30.0, samples=30):
-    """
-    Helper function to find the best slice based on cross-sectional perimeter.
-    """
-    min_z = max_z - depth
-    best_z = min_z
-    best_length = 0.0
-    for i in range(samples + 1):
-        z = min_z + (max_z - min_z) * i / samples
-        length = 0.0
-        for edge in mesh.edges:
-            v1 = mesh.vertices[edge.vertices[0]].co
-            v2 = mesh.vertices[edge.vertices[1]].co
-            if (v1.z - z) * (v2.z - z) < 0:
-                length += 1.0
-        if length > best_length:
-            best_length = length
-            best_z = z
-    return best_z, best_length
-
-
-def _calculate_plane_size(obj, normal):
-    """Calculate appropriate plane size based on object dimensions and cutting normal"""
-    dimensions = obj.dimensions
-    
-    # Calculate the diagonal of the bounding box
-    diagonal = (dimensions.x**2 + dimensions.y**2 + dimensions.z**2)**0.5
-    
-    # For safety, make the plane twice the diagonal length
-    # This ensures the plane extends well beyond the object in all directions
-    return diagonal * 2.0
-
-
-def _create_cutting_plane(context, location, normal, size=None, name="Cutting_Plane", target_obj=None):
-    """Create a plane object at the specified location with the given normal"""
-    # Calculate appropriate size if not specified and target object is provided
-    if size is None and target_obj is not None:
-        size = _calculate_plane_size(target_obj, normal)
-    elif size is None:
-        # Default size if no target object provided
-        size = 100.0
-        
-    # Create a plane mesh
-    bpy.ops.mesh.primitive_plane_add(size=size, location=location)
-    plane = context.active_object
-    plane.name = name
-    
-    # Align plane to the normal direction
-    from mathutils import Matrix, Vector, Quaternion  # Import here to avoid UnboundLocalError
-    
-    # Normalize the normal vector (just to be safe)
-    normal = normal.normalized()
-    
-    # Default plane normal is Z-up (0, 0, 1)
-    z_axis = Vector((0, 0, 1))
-    
-    # Special case: if the normal is pointing exactly down (-Z)
-    if (normal - Vector((0, 0, -1))).length < 0.001:
-        # Simply rotate 180 degrees around X axis
-        plane.rotation_euler = (3.14159, 0, 0)
-    elif normal != z_axis:  # Only rotate if not already aligned to Z
-        # Calculate the rotation that aligns z_axis with normal
-        # Using quaternion rotation which handles any direction correctly
-        rotation = z_axis.rotation_difference(normal)
-        plane.rotation_euler = rotation.to_euler()
-    
-    return plane
-
-
-def _boolean_operation(context, target, cutter, operation='DIFFERENCE', solver='EXACT', self_intersection=True):
-    """Apply a boolean operation to the target object using the cutter object"""
-    # Select the target object
-    bpy.ops.object.select_all(action='DESELECT')
-    target.select_set(True)
-    context.view_layer.objects.active = target
-    
-    # Add a boolean modifier
-    bool_mod = target.modifiers.new(name="Boolean", type='BOOLEAN')
-    bool_mod.operation = operation
-    bool_mod.object = cutter
-    bool_mod.solver = solver
-    bool_mod.use_self = self_intersection
-    
-    # Always apply the modifier to ensure the mesh data is updated
-    bpy.ops.object.modifier_apply(modifier=bool_mod.name)
-    
-    return target
+from .geometry import _find_best_slice
+from .primitives import _create_cutting_plane
+from .utils import _boolean_operation
 
 
 def generate_mold(context):
